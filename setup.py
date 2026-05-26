@@ -11,7 +11,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="eds-tutorial",
-    version="0.0.1",
+    version="2026",
     author="Innovation and Data Unit, IT Department, AP-HP",
     description="Hands-on tutorial to analyze data of a clinical data warehouse.",
     python_requires=">=3.6",

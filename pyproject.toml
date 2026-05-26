@@ -1,7 +1,7 @@
 [project]
 name = "edstuto"
-version = "0.1.0"
-description = "Add your description here"
+version = "2026"
+description="Hands-on tutorial to analyze data of a clinical data warehouse."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

@@ -8,7 +8,7 @@ Charline Jean
 Adam Remaki
 Benoit Playe
 Romain Bey
-
+Luca Thiebaud
 
 Contributors
 ============
