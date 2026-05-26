@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "altair>=5.0",
-    "edsnlp==0.17.1",
+    "edsnlp==0.21.0",
     "ipykernel>=6.29.5",
     "ipython<9.0",
     "lifelines==0.26.3",

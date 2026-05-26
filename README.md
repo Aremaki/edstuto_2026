@@ -9,26 +9,144 @@ Data is fake, and this project can consequently be freely shared without impacti
 
 ## Getting started
 
-### Environment and kernel creation
+We recommend using **Visual Studio Code**.
 
-Python, JupyterLab and an environment manager are recommended. You may choose for instance [Anaconda](https://docs.anaconda.com/anaconda/install/index.html).
+### 1. Open a terminal
 
-We also recommend using Visual Studio Code.
+In VS Code, open a new terminal:
 
-Please follow theses instructions:
-1. Open a terminal 
-2. Go to your local repository for the 2025_EI project
-3. Clone the project locally :
-`git clone {URL}`
-4. Using the terminal, access the cloned file
-`cd edstuto`
-5. Install the required packages with [uv](https://docs.astral.sh/uv/):
-- `pip install uv==0.7.8`
-- `uv venv --python 3.11.9`
-- `source .venv/bin/activate`
-- `uv sync`
+- Click on **Terminal > New Terminal**
+- Or press **Ctrl + ù**
+---
 
-NB: For VS Code users, in order to see clearly the plots, it is recommended to enable the Theme Matplotlib Plots in your setting > Extensions > Jupyter.
+### 2. Install Git
+
+First, check whether Git is already installed:
+
+```bash
+git --version
+```
+
+If the command does not work, install Git using one of the following commands.
+
+#### Windows
+
+In PowerShell:
+
+```powershell
+winget install --id Git.Git -e --source winget
+```
+
+#### macOS
+
+If you use Homebrew:
+
+```bash
+brew install git
+```
+
+#### Ubuntu/Debian Linux
+
+```bash
+sudo apt update
+sudo apt install git
+```
+
+After installation, close and reopen the terminal, then verify:
+
+```bash
+git --version
+```
+
+---
+
+### 3. Install uv
+
+`uv` will be used to install the correct Python version and the project dependencies.
+
+#### Windows PowerShell
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/0.11.16/install.ps1 | iex"
+```
+
+#### macOS/Linux
+
+```bash
+curl -LsSf https://astral.sh/uv/0.11.16/install.sh | sh
+```
+
+Then close and reopen the terminal, and check:
+
+```bash
+uv --version
+```
+
+---
+
+### 4. Clone the project locally
+
+```bash
+git clone https://github.com/Aremaki/edstuto_2026.git
+cd edstuto_2026
+```
+
+---
+
+### 5. Install Python and dependencies with uv
+
+```bash
+uv python install
+uv sync --locked
+```
+
+This will create a local virtual environment in the `.venv` folder and install all required dependencies.
+
+---
+
+### 6. Select the Python environment in VS Code
+
+In VS Code:
+
+1. Open the Command Palette:
+
+   * **Ctrl + Shift + P** on Windows/Linux
+   * **Cmd + Shift + P** on macOS
+
+2. Search for:
+
+```text
+Python: Select Interpreter
+```
+
+3. Select the interpreter located in the project folder:
+
+---
+
+### 7. Select the Jupyter kernel
+
+When opening a notebook in VS Code:
+
+1. Click **Select Kernel** in the top-right corner.
+2. Choose the Python environment from the `.venv` folder.
+
+If the `.venv` kernel does not appear, run:
+
+```bash
+uv run python -m ipykernel install --user --name edstuto_2026 --display-name "Python (edstuto_2026)"
+```
+
+Then restart VS Code and select the kernel again.
+
+---
+
+### Note for VS Code users
+
+To see plots more clearly in notebooks, it is recommended to enable:
+
+```text
+Settings > Extensions > Jupyter > Theme Matplotlib Plots
+```
 
 ### Scientific libraries installation
 

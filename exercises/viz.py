@@ -1,12 +1,11 @@
-import pandas as pd
-import numpy as np
+import altair as alt
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
-from lifelines.statistics import logrank_test
+import pandas as pd
+from dateutil.relativedelta import relativedelta
 from lifelines import KaplanMeierFitter
 from lifelines.plotting import add_at_risk_counts
-import altair as alt
-from dateutil.relativedelta import relativedelta
+from lifelines.statistics import logrank_test
+from matplotlib.ticker import MaxNLocator
 
 kmf = KaplanMeierFitter()
 kmf_c = KaplanMeierFitter()
@@ -45,12 +44,12 @@ def get_df_kaplan(
 
     :return: pandas df
     """
-    df_visit_tmp = df_visit_tmp.query(
-        "visit_start_datetime <= @t_end_of_study")
+    df_visit_tmp = df_visit_tmp.query("visit_start_datetime <= @t_end_of_study")
 
     # for each patient : duration, death or not (then no info anymore)
     df_admin = (
-        df_person_tmp.merge(df_visit_tmp, on="person_id", how="inner")
+        df_person_tmp
+        .merge(df_visit_tmp, on="person_id", how="inner")
         .merge(
             df_med_tmp[["drug_source_value", "visit_occurrence_id"]],
             on="visit_occurrence_id",
@@ -63,9 +62,9 @@ def get_df_kaplan(
     if age_range is not None:
         df_admin = df_admin.assign(
             age=lambda pp: pp[["visit_start_datetime", "birth_datetime"]].apply(
-                lambda r: relativedelta(
-                    r["visit_start_datetime"], r["birth_datetime"]
-                ).years,
+                lambda r: (
+                    relativedelta(r["visit_start_datetime"], r["birth_datetime"]).years
+                ),
                 axis=1,
             )
         ).query(f"age<{age_range[1]} and age>={age_range[0]}")
@@ -117,7 +116,7 @@ def plot_primary_kaplan(
     t_end_of_study,
 ):
     """
-    Function that displays survival curves computed by the KaplanMeierFitter function from the lifeline package. 
+    Function that displays survival curves computed by the KaplanMeierFitter function from the lifeline package.
     It compares the drugA and drugB effects to the control cohort.
 
     Parameters
@@ -143,8 +142,7 @@ def plot_primary_kaplan(
     fig, axs = plt.subplots(1, 2)
     fig.set_size_inches(10.5, 5.5)
 
-    i = 0
-    for df_visit_kaplan, df_med_kaplan, name in list_case:
+    for i, (df_visit_kaplan, df_med_kaplan, name) in enumerate(list_case):
         df_kaplan = get_df_kaplan(
             df_person_kaplan,
             df_visit_kaplan,
@@ -160,12 +158,10 @@ def plot_primary_kaplan(
             kmf_c.plot_survival_function(ax=axs[0])
         kmf.fit(dfA["T"], dfA["E"], label=f"drugA - {name}")
         kmf.plot_survival_function(ax=axs[0])
-        add_at_risk_counts(kmf, kmf_c, ax=axs[0], rows_to_show=['At risk'])
+        add_at_risk_counts(kmf, kmf_c, ax=axs[0], rows_to_show=["At risk"])
         kmf.fit(dfB["T"], dfB["E"], label=f"drugB - {name}")
         kmf.plot_survival_function(ax=axs[1])
-        add_at_risk_counts(kmf, kmf_c, ax=axs[1], rows_to_show=['At risk'])
-
-        i += 1
+        add_at_risk_counts(kmf, kmf_c, ax=axs[1], rows_to_show=["At risk"])
 
     axs[0].set_title("drugA - all population")
     axs[1].set_title("drugB - all population")
@@ -200,7 +196,7 @@ def plot_secondary_kaplan(
     drug_name="drugA",
 ):
     """
-    Function that displays survival curves computed by the KaplanMeierFitter function from the lifeline package. 
+    Function that displays survival curves computed by the KaplanMeierFitter function from the lifeline package.
     Proceeds to a stratified analysis on gender and age, based on a given drug to analyse.
 
     Parameters
@@ -236,8 +232,7 @@ def plot_secondary_kaplan(
     fig.set_size_inches(10.5, 18.5)
 
     for i, age_range in enumerate([(5, 18), (18, 25), (25, 65), (65, 100)]):
-        i_loc = 0
-        for df_visit_kaplan, df_med_kaplan, name in list_case:
+        for i_loc, (df_visit_kaplan, df_med_kaplan, name) in enumerate(list_case):
             dfm = get_df_kaplan(
                 df_person_kaplan,
                 df_visit_kaplan,
@@ -254,11 +249,13 @@ def plot_secondary_kaplan(
                 age_range,
                 "f",
             )
-            dfmc, dfmA = dfm.query('group=="control"'), dfm.query(
-                f'group=="{drug_name}"'
+            dfmc, dfmA = (
+                dfm.query('group=="control"'),
+                dfm.query(f'group=="{drug_name}"'),
             )
-            dffc, dffA = dff.query('group=="control"'), dff.query(
-                f'group=="{drug_name}"'
+            dffc, dffA = (
+                dff.query('group=="control"'),
+                dff.query(f'group=="{drug_name}"'),
             )
             if i_loc == 0:
                 kmf.fit(dffc["T"], dffc["E"], label="control")
@@ -269,22 +266,9 @@ def plot_secondary_kaplan(
             kmf.plot_survival_function(ax=axs[i, 0])
             kmf.fit(dfmA["T"], dfmA["E"], label=f"{drug_name} - {name}")
             kmf.plot_survival_function(ax=axs[i, 1])
-            i_loc += 1
 
         axs[i, 0].set_title(f"{drug_name} - women - age range {age_range}")
         axs[i, 1].set_title(f"{drug_name} - men - age range {age_range}")
-        # resultsA = logrank_test(
-        #     dffA["T"], dffc["T"], event_observed_A=dffA["E"], event_observed_B=dffc["E"]
-        # )
-        # resultsB = logrank_test(
-        #     dfmA["T"], dfmc["T"], event_observed_A=dfmA["E"], event_observed_B=dfmc["E"]
-        # )
-        # axs[i, 0].set_title(
-        #     f"{drug_name} - women - age range {age_range}\nlog-rank test p_value: {round(resultsA.p_value, 3)}"
-        # )
-        # axs[i, 1].set_title(
-        #     f"{drug_name} - men - age range {age_range}\nlog-rank test p_value: {round(resultsB.p_value, 3)}"
-        # )
         axs[i, 0].set_ylim([0, 1.05])
         axs[i, 1].set_ylim([0, 1.05])
         axs[i, 0].xaxis.set_major_locator(MaxNLocator(integer=True))
@@ -349,7 +333,8 @@ def plot_primary_multicase_logranktest(
         dict_pvalues["title"].append(f"{i_plot + 1}) drugB - all population")
 
     points = (
-        alt.Chart(
+        alt
+        .Chart(
             pd.DataFrame(dict_pvalues).rename(
                 columns={"title": "log rank test p-values"}
             )
@@ -370,10 +355,7 @@ def plot_primary_multicase_logranktest(
 
 
 def plot_secondary_multicase_logranktest(
-    df_person_kaplan,
-    list_case,
-    t_end_of_study,
-    drug_name="drugA"
+    df_person_kaplan, list_case, t_end_of_study, drug_name="drugA"
 ):
     """
     Displays log-rank test p-values for all cases in list_case for specific populations (specific age and gender).
@@ -410,11 +392,13 @@ def plot_secondary_multicase_logranktest(
                 age_range,
                 "f",
             )
-            dfmc, dfmA = dfm.query('group=="control"'), dfm.query(
-                f'group=="{drug_name}"'
+            dfmc, dfmA = (
+                dfm.query('group=="control"'),
+                dfm.query(f'group=="{drug_name}"'),
             )
-            dffc, dffA = dff.query('group=="control"'), dff.query(
-                f'group=="{drug_name}"'
+            dffc, dffA = (
+                dff.query('group=="control"'),
+                dff.query(f'group=="{drug_name}"'),
             )
             resultsM = logrank_test(
                 dffA["T"],
@@ -441,7 +425,8 @@ def plot_secondary_multicase_logranktest(
         i_plot += 2
 
     points = (
-        alt.Chart(
+        alt
+        .Chart(
             pd.DataFrame(dict_pvalues).rename(
                 columns={"title": "log rank test p-values"}
             )
